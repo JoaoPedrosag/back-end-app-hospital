@@ -48,31 +48,73 @@ router.post('/', (req,res, next) => {
 
 /// Retorna os dados de um paciente
 router.get('/:id_patient', (req, res, next) => {
-    const id = req.params.id_patient;
-    if(id === 'special') {
-        res.status(200).send({
-        message: 'Use the GET request id patient',
-        id: id
-        });
-    } else {res.status(200).send({
-        message: 'Use the GET request id patient',
-        id: id
+    mysql.getConnection((error, conn) => {
+        if(error) { return res.status(500).send({ error: error }) }
+        conn.query(
+            'SELECT * FROM patients WHERE id_patients = ?;',
+            [req.params.id_patient],
+            (error, result, field) => {
+                return res.status(200).send({
+                    response: result       
+                });
+            }
+        );
     });
-}
 });
 
 
 /// Atualiza os dados de um paciente
 router.patch('/', (req,res, next) => {
-    res.status(201).send({
-        message: 'Use the PATH request patient'
+    mysql.getConnection((error, conn) => {
+        if(error) { return res.status(500).send({ error: error }) }
+        conn.query(
+            `UPDATE patients 
+            SET nome = ?, 
+            nome_da_mae = ?, 
+            data_nascimento = ?,
+            endereco = ?
+            WHERE id_patients = ?`,
+            
+            
+            [
+                req.body.nome,
+                req.body.nome_da_mae,
+                req.body.data_nascimento,
+                req.body.endereco,
+                req.body.id_patients],
+            (error, result, field) => {
+                conn.release();
+                if(error) { return res.status(500).send({ error: error }) }
+                
+                    res.status(202).send({
+                        message: 'Paciente alterado com sucesso',
+                        
+                    });
+                
+            }
+        )
     });
 });
 /// Deleta um paciente
 router.delete('/', (req,res, next) => {
-    res.status(201).send({
-        message: 'Use the Delete request patient'
-    })
+    mysql.getConnection((error, conn) => {
+        if(error) { return res.status(500).send({ error: error }) }
+        conn.query(
+            `DELETE FROM patients WHERE id_patients = ?`,           
+            
+            [req.body.id_patients],
+            (error, result, field) => {
+                conn.release();
+                if(error) { return res.status(500).send({ error: error }) }
+                
+                    res.status(202).send({
+                        message: 'Paciente deletado com sucesso',
+                        
+                    });
+                
+            }
+        )
+    });
 
 
 });
