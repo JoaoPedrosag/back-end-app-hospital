@@ -1,19 +1,34 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require('./mysql/mysql').pool;
+const mysql = require('../mysql/mysql').pool;
 
 
 /// Retorna todos os pacientes
 router.get('/', (req, res, next) => { 
     
     mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({ error: error }) }
+        if(error) { return res.status(500).send({error: error }) }
         conn.query(
             'SELECT * FROM patients;',
             (error, result, field) => {
-                return res.status(200).send({
-                    response: result       
-                });
+                if(error) { return res.status(500).send({ error: error }) }
+
+                const response = {
+                    quantity: result.lenght,
+                    patients: result.map(patient => {
+                    return {
+                        id_patient: patient.id_patients,
+                        nome: patient.nome,
+                        nome_da_mae: patient.nome_da_mae,
+                        data_de_nascimento: patient.data_de_nascimento,
+                        endereco: patient.endereco,
+                        data_cadastro: patient.data_cadastro,
+                        
+                    }   
+                    })
+                 };
+                return res.status(200).send({response});
+              
             }
         );
     });
@@ -35,7 +50,7 @@ router.post('/', (req,res, next) => {
                 
                     res.status(201).send({
                         message: 'Paciente inserido com sucesso',
-                        id_produto: result.insertId,
+                        id_patient: result.insertId,
                     });
                 
             }

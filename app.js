@@ -14,6 +14,8 @@ app.use(express.json());
 
 /// rotas
 const routePatient = require('./routes/patient');
+const routeDoctors = require('./routes/doctors');
+const routeUsers = require('./routes/users');
 
 
 
@@ -21,6 +23,8 @@ app.use(cors());
 
 app.use(morgan('dev'));
 app.use('/patient', routePatient);
+app.use('/doctors', routeDoctors);
+app.use('/users', routeDoctors);
 
 
 /// Quando não encontra a rota
