@@ -24,7 +24,7 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use('/patient', routePatient);
 app.use('/doctors', routeDoctors);
-app.use('/users', routeDoctors);
+app.use('/users', routeUsers);
 
 
 /// Quando não encontra a rota
