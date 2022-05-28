@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require('../mysql/mysql').pool;
-
+const login = require('../middleware/login');
 
 /// Retorna todos os pacientes
-router.get('/', (req, res, next) => { 
+router.get('/', login.obrigatorio, (req, res, next) => { 
     
     mysql.getConnection((error, conn) => {
         if(error) { return res.status(500).send({error: error }) }
@@ -37,7 +37,7 @@ router.get('/', (req, res, next) => {
 
 
 /// Insere um paciente
-router.post('/', (req,res, next) => {  
+router.post('/',  login.obrigatorio, (req,res, next) => {  
 
     mysql.getConnection((error, conn) => {
         if(error) { return res.status(500).send({ error: error }) }
@@ -62,7 +62,7 @@ router.post('/', (req,res, next) => {
 
 
 /// Retorna os dados de um paciente
-router.get('/:id_patient', (req, res, next) => {
+router.get('/:id_patient',  login.obrigatorio, (req, res, next) => {
     mysql.getConnection((error, conn) => {
         if(error) { return res.status(500).send({ error: error }) }
         conn.query(
@@ -79,7 +79,7 @@ router.get('/:id_patient', (req, res, next) => {
 
 
 /// Atualiza os dados de um paciente
-router.patch('/', (req,res, next) => {
+router.patch('/',  login.obrigatorio, (req,res, next) => {
     mysql.getConnection((error, conn) => {
         if(error) { return res.status(500).send({ error: error }) }
         conn.query(
@@ -111,7 +111,7 @@ router.patch('/', (req,res, next) => {
     });
 });
 /// Deleta um paciente
-router.delete('/', (req,res, next) => {
+router.delete('/',  login.obrigatorio, (req,res, next) => {
     mysql.getConnection((error, conn) => {
         if(error) { return res.status(500).send({ error: error }) }
         conn.query(
