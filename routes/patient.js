@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require('../mysql/mysql').pool;
+const mysql = require('../mysql/mysql');
 const login = require('../middleware/login');
 
 /// Retorna todos os pacientes
 router.get('/', login.obrigatorio, (req, res, next) => { 
     
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({error: error }) }
+    const conn = mysql.connect();
+        
         conn.query(
-            'SELECT * FROM patients;',
+            'SELECT * FROM hospital.patients;',
+
             (error, result, field) => {
                 if(error) { return res.status(500).send({ error: error }) }
 
@@ -22,7 +23,7 @@ router.get('/', login.obrigatorio, (req, res, next) => {
                         nome_da_mae: patient.nome_da_mae,
                         data_de_nascimento: patient.data_de_nascimento,
                         endereco: patient.endereco,
-                        data_cadastro: patient.data_cadastro,
+                        idade: patient.idade,
                         
                     }   
                     })
@@ -31,7 +32,7 @@ router.get('/', login.obrigatorio, (req, res, next) => {
               
             }
         );
-    });
+    
     
 });
 
@@ -39,13 +40,13 @@ router.get('/', login.obrigatorio, (req, res, next) => {
 /// Insere um paciente
 router.post('/',  login.obrigatorio, (req,res, next) => {  
 
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({ error: error }) }
+    
+        const conn = mysql.connect();
         conn.query(
-            'INSERT INTO app_hospital.patients (nome, nome_da_mae, data_nascimento, endereco, data_cadastro) VALUES (?, ?, ?, ?, ?)',
-            [req.body.nome, req.body.nome_da_mae, req.body.data_nascimento, req.body.endereco, req.body.data_cadastro],
+            'INSERT INTO patients (nome, nome_da_mae, data_nascimento, endereco, idade) VALUES (?, ?, ?, ?, ?)',
+            [req.body.nome, req.body.nome_da_mae, req.body.data_nascimento, req.body.endereco, req.body.idade],
             (error, result, field) => {
-                conn.release();
+                conn.end();
                 if(error) { return res.status(500).send({ error: error }) }
                 
                     res.status(201).send({
@@ -55,7 +56,7 @@ router.post('/',  login.obrigatorio, (req,res, next) => {
                 
             }
         )
-    });
+    
    
 });
 
@@ -63,42 +64,37 @@ router.post('/',  login.obrigatorio, (req,res, next) => {
 
 /// Retorna os dados de um paciente
 router.get('/:id_patient',  login.obrigatorio, (req, res, next) => {
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({ error: error }) }
+    const conn = mysql.connect();
+      
         conn.query(
             'SELECT * FROM patients WHERE id_patients = ?;',
             [req.params.id_patient],
             (error, result, field) => {
+                conn.end();
                 return res.status(200).send({
                     response: result       
                 });
             }
         );
-    });
+    
 });
 
 
 /// Atualiza os dados de um paciente
 router.patch('/',  login.obrigatorio, (req,res, next) => {
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({ error: error }) }
+    
+    const conn = mysql.connect();
         conn.query(
-            `UPDATE patients 
-            SET nome = ?, 
-            nome_da_mae = ?, 
-            data_nascimento = ?,
-            endereco = ?
-            WHERE id_patients = ?`,
-            
-            
+            'UPDATE patients SET nome = ?,nome_da_mae = ?,data_nascimento = ?,endereco = ?,idade = ? WHERE id_patients = ?;',            
             [
                 req.body.nome,
                 req.body.nome_da_mae,
                 req.body.data_nascimento,
                 req.body.endereco,
+                req.body.idade,
                 req.body.id_patients],
             (error, result, field) => {
-                conn.release();
+                conn.end();
                 if(error) { return res.status(500).send({ error: error }) }
                 
                     res.status(202).send({
@@ -108,18 +104,17 @@ router.patch('/',  login.obrigatorio, (req,res, next) => {
                 
             }
         )
-    });
+    
 });
 /// Deleta um paciente
 router.delete('/',  login.obrigatorio, (req,res, next) => {
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({ error: error }) }
+    const conn = mysql.connect();
         conn.query(
             `DELETE FROM patients WHERE id_patients = ?`,           
             
             [req.body.id_patients],
             (error, result, field) => {
-                conn.release();
+                conn.end();
                 if(error) { return res.status(500).send({ error: error }) }
                 
                     res.status(202).send({
@@ -129,7 +124,7 @@ router.delete('/',  login.obrigatorio, (req,res, next) => {
                 
             }
         )
-    });
+    
 
 
 });

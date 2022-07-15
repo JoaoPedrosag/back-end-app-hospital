@@ -1,16 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require('../mysql/mysql').pool;
+const mysql = require('../mysql/mysql');
 
 
 /// Retorna todos os medicos
 router.get('/', (req, res, next) => { 
     
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({error: error }) }
+    const conn = mysql.connect();
+        
         conn.query(
             'SELECT * FROM medicos;',
             (error, result, field) => {
+                conn.end();
                 if(error) { return res.status(500).send({ error: error }) }
 
                 const response = {
@@ -19,6 +20,7 @@ router.get('/', (req, res, next) => {
                     return {
                         id_doctors: doctors.id_medicos,
                         nome_medico: doctors.nome_medico,
+                        crm: doctors.crm,
                         especialidade: doctors.especialidade,                      
                         
                     }   
@@ -28,19 +30,19 @@ router.get('/', (req, res, next) => {
               
             }
         );
-    });
+    
     
 });
 /// Insere um medico
 router.post('/', (req,res, next) => {  
 
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({ error: error }) }
+    const conn = mysql.connect();
+       
         conn.query(
-            'INSERT INTO app_hospital.medicos (nome_medico, especialidade) VALUES (?, ?)',
-            [req.body.nome_medico, req.body.especialidade],
+            'INSERT INTO medicos (nome_medico, crm, especialidade) VALUES (?, ?, ?)',
+            [req.body.nome_medico,req.body.crm, req.body.especialidade],
             (error, result, field) => {
-                conn.release();
+                conn.end();
                 if(error) { return res.status(500).send({ error: error }) }
                 
                     res.status(201).send({
@@ -50,7 +52,7 @@ router.post('/', (req,res, next) => {
                 
             }
         )
-    });
+    
    
 });
 

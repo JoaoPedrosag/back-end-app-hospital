@@ -1,25 +1,25 @@
-const mysql = require('../mysql/mysql').pool;
+const mysql = require('../mysql/mysql');
 const login = require('../middleware/login');
 
 exports.insertPatient = login.obrigatorio, (req,res, next) => {  
-
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({ error: error }) }
+    const {nome, nome_da_mae, data_nascimento, endereco, idade} = req.body;
+    const conn = mysql.connect();
         conn.query(
             'INSERT INTO app_hospital.patients (nome, nome_da_mae, data_nascimento, endereco, data_cadastro) VALUES (?, ?, ?, ?, ?)',
-            [req.body.nome, req.body.nome_da_mae, req.body.data_nascimento, req.body.endereco, req.body.data_cadastro],
+            [nome, nome_da_mae, data_nascimento, endereco, data_cadastro, idade],
             (error, result, field) => {
-                conn.release();
+                
                 if(error) { return res.status(500).send({ error: error }) }
                 
                     res.status(201).send({
                         message: 'Paciente inserido com sucesso',
                         id_patient: result.insertId,
                     });
-                
+                        conn.end();
             }
-        )
-    });
+            
+    )
+    
 };
 
 exports.getAllPacients =  login.obrigatorio, (req, res, next) => { 

@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require('../mysql/mysql').pool;
+const mysql = require('../mysql/mysql');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 router.post('/cadastro', (req, res) => {
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({ error: error }) }
-        conn.query('SELECT * FROM app_hospital.usuarios WHERE email = ?', [req.body.email], (error, results) => {
+    const conn = mysql.connect();
+        conn.query('SELECT * FROM hospital.usuarios WHERE email = ?', [req.body.email],
+         (error, results) => {
+            
             if(error) { return res.status(500).send({ error: error }) }
             if(results.length > 0) {
                 return res.status(409).send({ mensagem: 'Usuário já existe' })
@@ -17,8 +18,10 @@ router.post('/cadastro', (req, res) => {
                     conn.query(
                         `INSERT INTO usuarios (email, senha) VALUES (?, ?)`,
                         [req.body.email, hash],
+                        
                         (error, results) => {
-                            conn.release();
+                            conn.end();
+                            
                             response = {
                                 message: 'Usuário cadastrado com sucesso',
                                 usuarioCriado: {
@@ -33,19 +36,18 @@ router.post('/cadastro', (req, res) => {
                     );
                 })
             }
-
+            
         })
         
 
-    });
+    
 });
 
 router.post('/login', (req, res, next) => {
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({ error: error }) }
-        conn.query('SELECT * FROM app_hospital.usuarios WHERE email = ?', [req.body.email], (error, results) => {
-            conn.release();
-            if(error) { return res.status(500).send({ error: error }) }
+    const conn = mysql.connect();
+        
+        conn.query('SELECT * FROM usuarios WHERE email = ?', [req.body.email], 
+        (error, results) => {
             if(results.length < 1) {
                 return res.status(404).send({ mensagem: 'Usuário não encontrado' })
             }
@@ -63,12 +65,12 @@ router.post('/login', (req, res, next) => {
                         mensagem: 'Sucesso',
                         token: token
                     })
-                } else {
+                } 
                     return res.status(401).send({ mensagem: 'Falha na autenticação' })
-                }
             })
+            conn.end();
         });
-    });
+    
 }) 
 
 
